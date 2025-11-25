@@ -2,7 +2,7 @@
 // __DEV__ is true in development, false in production builds
 
 const DEVELOPMENT_URL = 'http://192.168.29.226:3000/api/v1';
-const PRODUCTION_URL = 'https://your-domain.com/api/v1'; // CHANGE THIS BEFORE BUILDING APK
+const PRODUCTION_URL = 'https://camping-gear-tracker.onrender.com/api/v1';
 
 const API_BASE_URL = __DEV__ ? DEVELOPMENT_URL : PRODUCTION_URL;
 
