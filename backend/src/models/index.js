@@ -1,6 +1,7 @@
 const Item = require('./Item');
 const ItemImage = require('./ItemImage');
 const Category = require('./Category');
+const User = require('./User');
 
 // Define associations
 Item.hasMany(ItemImage, { 
@@ -32,5 +33,6 @@ Category.belongsToMany(Item, {
 module.exports = {
   Item,
   ItemImage,
-  Category
+  Category,
+  User
 };
