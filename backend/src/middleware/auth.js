@@ -14,6 +14,17 @@ const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
+    // Handle super admin (doesn't exist in database)
+    if (decoded.userId === 'super-admin') {
+      req.user = {
+        id: 'super-admin',
+        name: 'Super Admin',
+        role: 'admin',
+      };
+      return next();
+    }
+    
+    // Handle regular users
     const user = await User.findByPk(decoded.userId);
     if (!user || !user.is_active) {
       return res.status(401).json({ message: 'Invalid or inactive user' });
