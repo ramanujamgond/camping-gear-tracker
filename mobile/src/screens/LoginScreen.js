@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -6,30 +6,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  FlatList,
   Modal,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import authService from '../services/authService';
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
 
-  const loadUsers = async () => {
-    // Users list will be empty on first load (no auth yet)
-    // After first super admin login, users can be created
-    setLoadingUsers(false);
-  };
 
   const handleNumberPress = (num) => {
     if (pin.length < 4) {
@@ -116,24 +104,11 @@ export default function LoginScreen() {
         <Text style={styles.subtitle}>Enter PIN to continue</Text>
       </View>
 
-      {selectedUser ? (
-        <TouchableOpacity
-          style={styles.userBadge}
-          onPress={() => setShowUserModal(true)}
-        >
-          <Text style={styles.userBadgeText}>👤 {selectedUser.name}</Text>
-          <Text style={styles.changeUserText}>Tap to change</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={styles.selectUserButton}
-          onPress={() => setShowUserModal(true)}
-        >
-          <Text style={styles.selectUserText}>
-            {loadingUsers ? 'Loading users...' : 'Select User (Optional)'}
-          </Text>
-        </TouchableOpacity>
-      )}
+      <View style={styles.loginInfo}>
+        <Text style={styles.loginInfoText}>
+          {selectedUser ? `Logging in as: ${selectedUser.name}` : 'Logging in as: Super Admin'}
+        </Text>
+      </View>
 
       {renderPinDots()}
       {renderNumberPad()}
@@ -181,26 +156,11 @@ export default function LoginScreen() {
               <Text style={styles.userItemDesc}>Login as administrator</Text>
             </TouchableOpacity>
 
-            <FlatList
-              data={users}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.userItem}
-                  onPress={() => {
-                    setSelectedUser(item);
-                    setShowUserModal(false);
-                    setPin('');
-                  }}
-                >
-                  <Text style={styles.userItemName}>👤 {item.name}</Text>
-                  <Text style={styles.userItemDesc}>{item.role}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No users created yet</Text>
-              }
-            />
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                Regular users can be created by Super Admin after login
+              </Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -375,5 +335,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 20,
     color: '#999',
+  },
+  loginInfo: {
+    backgroundColor: '#e8f5e9',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  loginInfoText: {
+    fontSize: 14,
+    color: '#2e7d32',
+    fontWeight: '500',
+  },
+  infoBox: {
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    margin: 15,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
