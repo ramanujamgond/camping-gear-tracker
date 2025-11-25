@@ -57,11 +57,11 @@ export default function ItemDetailScreen({ route, navigation }) {
         {item.images && item.images.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Images</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
               {item.images.map((image) => (
                 <Image
                   key={image.id}
-                  source={{ uri: `http://localhost:3000${image.image_url}` }}
+                  source={{ uri: `http://192.168.29.226:3000${image.image_url}` }}
                   style={styles.image}
                 />
               ))}
@@ -176,13 +176,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     padding: 15,
-    gap: 10,
+    justifyContent: 'space-between',
   },
   button: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginHorizontal: 5,
   },
   editButton: {
     backgroundColor: '#558b2f',

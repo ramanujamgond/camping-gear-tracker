@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Camera } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import itemService from '../services/itemService';
 
 export default function ScannerScreen({ navigation }) {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const handleBarCodeScanned = async ({ type, data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     if (scanned || loading) return;
     
     setScanned(true);
@@ -40,42 +32,58 @@ export default function ScannerScreen({ navigation }) {
     }
   };
 
-  if (hasPermission === null) {
+  if (!permission) {
     return (
-      <View style={styles.container}>
-        <Text>Requesting camera permission...</Text>
+      <View style={styles.permissionContainer}>
+        <View style={styles.permissionCard}>
+          <Text style={styles.loadingText}>🔄</Text>
+          <Text style={styles.permissionTitle}>Checking Permissions...</Text>
+        </View>
       </View>
     );
   }
 
-  if (hasPermission === false) {
+  if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No access to camera</Text>
-        <Text style={styles.infoText}>
-          Please enable camera permissions in your device settings
-        </Text>
+      <View style={styles.permissionContainer}>
+        <View style={styles.permissionCard}>
+          <Text style={styles.cameraIcon}>📷</Text>
+          <Text style={styles.permissionTitle}>Camera Access Required</Text>
+          <Text style={styles.permissionDescription}>
+            To scan QR codes and track your camping gear, we need access to your camera.
+          </Text>
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+            <Text style={styles.permissionButtonText}>Allow Camera Access</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Camera
+      <CameraView
         style={styles.camera}
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barCodeScannerSettings={{
-          barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
+        facing="back"
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+        barcodeScannerSettings={{
+          barcodeTypes: ['qr'],
         }}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.scanArea}>
-            <Text style={styles.scanText}>
-              {loading ? 'Loading...' : 'Point camera at QR code'}
-            </Text>
-          </View>
+      />
+      
+      <View style={styles.overlay}>
+        <View style={styles.scanArea}>
+          <Text style={styles.scanText}>
+            {loading ? 'Loading...' : 'Point camera at QR code'}
+          </Text>
         </View>
-      </Camera>
+      </View>
 
       {scanned && (
         <TouchableOpacity
@@ -95,10 +103,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   camera: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -106,17 +114,19 @@ const styles = StyleSheet.create({
   scanArea: {
     width: 250,
     height: 250,
-    borderWidth: 2,
-    borderColor: '#fff',
-    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#2e7d32',
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(46, 125, 50, 0.1)',
   },
   scanText: {
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
     padding: 20,
+    fontWeight: '500',
   },
   rescanButton: {
     position: 'absolute',
@@ -125,23 +135,86 @@ const styles = StyleSheet.create({
     backgroundColor: '#2e7d32',
     paddingVertical: 15,
     paddingHorizontal: 40,
-    borderRadius: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
   rescanText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  errorText: {
-    color: '#fff',
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  infoText: {
-    color: '#ccc',
-    fontSize: 14,
-    textAlign: 'center',
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
+  },
+  permissionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    maxWidth: 400,
+    width: '100%',
+  },
+  cameraIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 48,
+    marginBottom: 20,
+  },
+  permissionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  permissionDescription: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 30,
+  },
+  permissionButton: {
+    backgroundColor: '#2e7d32',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#2e7d32',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  permissionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backButton: {
+    marginTop: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+  },
+  backButtonText: {
+    color: '#666',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
