@@ -24,19 +24,28 @@ export default function HomeScreen({ navigation }) {
     try {
       setExporting(true);
       
-      const response = await authService.exportToPDF();
+      // Download PDF from backend
       const fileUri = FileSystem.documentDirectory + `camping-gear-${Date.now()}.pdf`;
       
-      // Save PDF to device
-      await FileSystem.writeAsStringAsync(fileUri, response, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      const downloadResult = await FileSystem.downloadAsync(
+        `${authService.getApiUrl()}/export/pdf`,
+        fileUri,
+        {
+          headers: {
+            Authorization: `Bearer ${await authService.getToken()}`,
+          },
+        }
+      );
 
-      // Share PDF
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+      if (downloadResult.status === 200) {
+        // Share PDF
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(downloadResult.uri);
+        } else {
+          Alert.alert('Success', 'PDF saved to device');
+        }
       } else {
-        Alert.alert('Success', 'PDF saved to device');
+        throw new Error('Failed to download PDF');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to export PDF');

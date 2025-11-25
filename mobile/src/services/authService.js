@@ -78,12 +78,9 @@ export const authService = {
     return response.data;
   },
 
-  // Export to PDF
-  exportToPDF: async () => {
-    const response = await api.get('/export/pdf', {
-      responseType: 'blob',
-    });
-    return response.data;
+  // Get API base URL
+  getApiUrl: () => {
+    return api.defaults.baseURL;
   },
 };
 
