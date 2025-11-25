@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import itemService from '../services/itemService';
@@ -136,8 +138,16 @@ export default function AddItemScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView 
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.form}>
         {!isEdit && qrCodeId && (
           <View style={styles.qrCodeBox}>
             <Text style={styles.qrCodeLabel}>QR Code</Text>
@@ -205,6 +215,7 @@ export default function AddItemScreen({ route, navigation }) {
           )}
         </TouchableOpacity>
       </View>
+      </ScrollView>
 
       <Modal
         visible={showCategoryModal}
@@ -242,7 +253,7 @@ export default function AddItemScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
