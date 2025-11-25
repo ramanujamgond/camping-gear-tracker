@@ -1,9 +1,58 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useContext, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { AuthContext } from '../context/AuthContext';
+import authService from '../services/authService';
 
 export default function HomeScreen({ navigation }) {
+  const { user, logout, isAdmin } = useContext(AuthContext);
+  const [exporting, setExporting] = useState(false);
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: logout,
+      },
+    ]);
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+      
+      const response = await authService.exportToPDF();
+      const fileUri = FileSystem.documentDirectory + `camping-gear-${Date.now()}.pdf`;
+      
+      // Save PDF to device
+      await FileSystem.writeAsStringAsync(fileUri, response, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Share PDF
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+      } else {
+        Alert.alert('Success', 'PDF saved to device');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export PDF');
+      console.error('Export error:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.userBadge}>
+        <Text style={styles.welcomeText}>Welcome, {user?.name}!</Text>
+        {isAdmin() && <Text style={styles.roleText}>🔑 Administrator</Text>}
+      </View>
+
       <Text style={styles.title}>Camping Gear Tracker</Text>
       <Text style={styles.subtitle}>Manage your camping equipment</Text>
 
@@ -19,6 +68,31 @@ export default function HomeScreen({ navigation }) {
         onPress={() => navigation.navigate('ItemList')}
       >
         <Text style={styles.buttonText}>📋 View All Items</Text>
+      </TouchableOpacity>
+
+      {isAdmin() && (
+        <TouchableOpacity
+          style={[styles.button, styles.adminButton]}
+          onPress={() => navigation.navigate('UserManagement')}
+        >
+          <Text style={styles.buttonText}>👥 Manage Users</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        style={[styles.button, styles.exportButton]}
+        onPress={handleExportPDF}
+        disabled={exporting}
+      >
+        {exporting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>📄 Export to PDF</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>🚪 Logout</Text>
       </TouchableOpacity>
 
       <View style={styles.infoBox}>
@@ -63,9 +137,46 @@ const styles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: '#558b2f',
   },
+  adminButton: {
+    backgroundColor: '#f57c00',
+  },
+  exportButton: {
+    backgroundColor: '#1976d2',
+  },
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: '600',
+  },
+  userBadge: {
+    backgroundColor: '#e8f5e9',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2e7d32',
+  },
+  roleText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  logoutButton: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#d32f2f',
+  },
+  logoutButtonText: {
+    color: '#d32f2f',
+    fontSize: 14,
     fontWeight: '600',
   },
   infoBox: {

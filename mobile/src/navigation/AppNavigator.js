@@ -1,20 +1,33 @@
-import React from 'react';
+import { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ActivityIndicator, View } from 'react-native';
 
+import { AuthContext, AuthProvider } from '../context/AuthContext';
+import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import ItemDetailScreen from '../screens/ItemDetailScreen';
 import AddItemScreen from '../screens/AddItemScreen';
 import ItemListScreen from '../screens/ItemListScreen';
+import UserManagementScreen from '../screens/UserManagementScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function AppNavigator() {
+function Navigation() {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2e7d32" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#2e7d32',
@@ -26,6 +39,14 @@ export default function AppNavigator() {
           headerTitleAlign: 'center',
         }}
       >
+        {!user ? (
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+        ) : (
+          <>
         <Stack.Screen 
           name="Home" 
           component={HomeScreen}
@@ -51,7 +72,22 @@ export default function AppNavigator() {
           component={ItemListScreen}
           options={{ title: 'All Items' }}
         />
+        <Stack.Screen 
+          name="UserManagement" 
+          component={UserManagementScreen}
+          options={{ title: 'User Management' }}
+        />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function AppNavigator() {
+  return (
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
   );
 }
