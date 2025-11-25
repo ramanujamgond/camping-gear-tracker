@@ -30,7 +30,9 @@ export default function UserManagementScreen() {
       const response = await authService.getUsers();
       setUsers(response.users || []);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load users');
+      const message = error.response?.data?.message || 'Failed to load users';
+      Alert.alert('Error', message);
+      console.error('Load users error:', error);
     } finally {
       setLoading(false);
     }
