@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import { downloadAsync, documentDirectory } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { AuthContext } from '../context/AuthContext';
 import authService from '../services/authService';
@@ -25,9 +25,9 @@ export default function HomeScreen({ navigation }) {
       setExporting(true);
       
       // Download PDF from backend
-      const fileUri = FileSystem.documentDirectory + `camping-gear-${Date.now()}.pdf`;
+      const fileUri = documentDirectory + `camping-gear-${Date.now()}.pdf`;
       
-      const downloadResult = await FileSystem.downloadAsync(
+      const downloadResult = await downloadAsync(
         `${authService.getApiUrl()}/export/pdf`,
         fileUri,
         {
