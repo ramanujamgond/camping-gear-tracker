@@ -25,11 +25,20 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     // Don't log 404 errors as they're expected for new items
     if (error.response?.status !== 404) {
       console.error('API Error:', error.response?.data || error.message);
     }
+    
+    // Auto-logout on authentication errors
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.removeItem('@camping_gear_token');
+      await AsyncStorage.removeItem('@camping_gear_user');
+      delete api.defaults.headers.common['Authorization'];
+    }
+    
     return Promise.reject(error);
   }
 );

@@ -15,9 +15,24 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.initAuth();
       const storedUser = await authService.getUser();
-      setUser(storedUser);
+      
+      // Validate token by making a test request
+      if (storedUser) {
+        try {
+          // Try to get users to validate token
+          await authService.getUsers();
+          setUser(storedUser);
+        } catch (error) {
+          // Token is invalid, clear auth
+          console.log('Token expired, clearing auth');
+          await authService.logout();
+          setUser(null);
+        }
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
+      await authService.logout();
+      setUser(null);
     } finally {
       setLoading(false);
     }
