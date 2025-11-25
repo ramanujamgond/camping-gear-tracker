@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
@@ -14,4 +14,4 @@ RUN mkdir -p uploads
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
