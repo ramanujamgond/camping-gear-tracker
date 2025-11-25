@@ -1,9 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
 import itemService from '../services/itemService';
 
 export default function ItemDetailScreen({ route, navigation }) {
-  const { item } = route.params;
+  const [item, setItem] = React.useState(route.params.item);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    // Refetch item to get all images
+    const fetchItem = async () => {
+      try {
+        setLoading(true);
+        const result = await itemService.getItemByQrCode(item.qr_code_id);
+        if (result.success) {
+          setItem(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch item:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItem();
+  }, []);
 
   const handleDelete = () => {
     Alert.alert(
@@ -27,6 +46,14 @@ export default function ItemDetailScreen({ route, navigation }) {
       ]
     );
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2e7d32" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
