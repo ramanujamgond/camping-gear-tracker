@@ -14,8 +14,6 @@ export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserModal, setShowUserModal] = useState(false);
 
 
 
@@ -42,7 +40,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await login(pin, selectedUser?.id);
+      await login(pin);
       // Navigation handled by AppNavigator
     } catch (error) {
       Alert.alert('Login Failed', error.response?.data?.message || 'Invalid PIN');
@@ -105,9 +103,7 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.loginInfo}>
-        <Text style={styles.loginInfoText}>
-          {selectedUser ? `Logging in as: ${selectedUser.name}` : 'Logging in as: Super Admin'}
-        </Text>
+        <Text style={styles.loginInfoText}>Enter your 4-digit PIN</Text>
       </View>
 
       {renderPinDots()}
@@ -125,45 +121,6 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
 
-      <Text style={styles.hint}>
-        {selectedUser ? 'Enter your 4-digit PIN' : 'Enter Super Admin PIN'}
-      </Text>
-
-      <Modal
-        visible={showUserModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowUserModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select User</Text>
-              <TouchableOpacity onPress={() => setShowUserModal(false)}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.userItem}
-              onPress={() => {
-                setSelectedUser(null);
-                setShowUserModal(false);
-                setPin('');
-              }}
-            >
-              <Text style={styles.userItemName}>🔑 Super Admin</Text>
-              <Text style={styles.userItemDesc}>Login as administrator</Text>
-            </TouchableOpacity>
-
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                Regular users can be created by Super Admin after login
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

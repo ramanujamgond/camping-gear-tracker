@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (pin, userId = null) => {
-    const result = await authService.login(pin, userId);
+  const login = async (pin) => {
+    const result = await authService.login(pin);
     if (result.success) {
       setUser(result.user);
     }

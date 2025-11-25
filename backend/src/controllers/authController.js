@@ -14,10 +14,14 @@ const generateToken = (userId, role) => {
 // Login with PIN
 exports.login = async (req, res) => {
   try {
-    const { pin, userId } = req.body;
+    const { pin } = req.body;
 
     if (!pin) {
       return res.status(400).json({ message: 'PIN is required' });
+    }
+
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      return res.status(400).json({ message: 'PIN must be exactly 4 digits' });
     }
 
     // Check if it's super admin PIN
@@ -34,35 +38,31 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check regular user
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID required for regular users' });
-    }
-
-    const user = await User.findByPk(userId);
+    // Find user by PIN (check all users)
+    const users = await User.findAll({ where: { is_active: true } });
     
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    let matchedUser = null;
+    for (const user of users) {
+      const isValidPin = await user.verifyPin(pin);
+      if (isValidPin) {
+        matchedUser = user;
+        break;
+      }
     }
 
-    if (!user.is_active) {
-      return res.status(403).json({ message: 'User account is inactive' });
-    }
-
-    const isValidPin = await user.verifyPin(pin);
-    if (!isValidPin) {
+    if (!matchedUser) {
       return res.status(401).json({ message: 'Invalid PIN' });
     }
 
-    const token = generateToken(user.id, user.role);
+    const token = generateToken(matchedUser.id, matchedUser.role);
 
     res.json({
       success: true,
       token,
       user: {
-        id: user.id,
-        name: user.name,
-        role: user.role,
+        id: matchedUser.id,
+        name: matchedUser.name,
+        role: matchedUser.role,
       },
     });
   } catch (error) {

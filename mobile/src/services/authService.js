@@ -6,9 +6,8 @@ const USER_KEY = '@camping_gear_user';
 
 export const authService = {
   // Login with PIN
-  login: async (pin, userId = null) => {
+  login: async (pin) => {
     const payload = { pin };
-    if (userId) payload.userId = userId;
     
     const response = await api.post('/auth/login', payload);
     
