@@ -1,0 +1,217 @@
+{
+  "info": {
+    "name": "Camping Gear Tracker API",
+    "description": "API endpoints for Camping Gear Tracker application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Items",
+      "item": [
+        {
+          "name": "Get Item by QR Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/items/CG-TEST-001",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items", "CG-TEST-001"]
+            },
+            "description": "Check if item exists by QR code. Returns 404 if not found."
+          }
+        },
+        {
+          "name": "Create Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_code_id\": \"CG-TEST-001\",\n  \"name\": \"Camping Tent\",\n  \"description\": \"4-person waterproof tent with rain fly\",\n  \"category_ids\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/items",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items"]
+            }
+          }
+        },
+        {
+          "name": "List All Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/items?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "tent",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Camping Tent\",\n  \"description\": \"5-person waterproof tent with rain fly and vestibule\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/items/{{item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items", "{{item_id}}"]
+            },
+            "description": "Replace {{item_id}} with actual UUID"
+          }
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/items/{{item_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items", "{{item_id}}"]
+            },
+            "description": "Delete an item and all its associated images"
+          }
+        },
+        {
+          "name": "Upload Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "is_primary",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/items/{{item_id}}/images",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items", "{{item_id}}", "images"]
+            },
+            "description": "Upload images for an item. Select files in the 'images' field."
+          }
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/items/images/{{image_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "items", "images", "{{image_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shelter\",\n  \"description\": \"Tents, tarps, and sleeping gear\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "image_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
