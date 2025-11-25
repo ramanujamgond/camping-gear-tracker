@@ -151,7 +151,7 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <Text style={styles.hint}>
-        {selectedUser ? 'Enter your 4-digit PIN' : 'Enter Super Admin PIN (2200)'}
+        {selectedUser ? 'Enter your 4-digit PIN' : 'Enter Super Admin PIN'}
       </Text>
 
       <Modal
