@@ -1,6 +1,10 @@
 // API Configuration
-// For physical device, use your computer's IP address
-const API_BASE_URL = 'http://192.168.29.226:3000/api/v1';
+// __DEV__ is true in development, false in production builds
+
+const DEVELOPMENT_URL = 'http://192.168.29.226:3000/api/v1';
+const PRODUCTION_URL = 'https://your-domain.com/api/v1'; // CHANGE THIS BEFORE BUILDING APK
+
+const API_BASE_URL = __DEV__ ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 // For Android emulator, use: http://10.0.2.2:3000/api/v1
 // For iOS simulator, use: http://localhost:3000/api/v1

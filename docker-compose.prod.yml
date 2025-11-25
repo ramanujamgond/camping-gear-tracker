@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: camping_gear_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-camping_gear}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - camping-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js API
+  api:
+    build: ./backend
+    container_name: camping_gear_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3000
+      - NODE_ENV=production
+      - UPLOAD_DIR=/usr/src/app/uploads
+      - SUPER_ADMIN_PIN=${SUPER_ADMIN_PIN}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-365d}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/usr/src/app/uploads
+    networks:
+      - camping-network
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  camping-network:
+    driver: bridge
