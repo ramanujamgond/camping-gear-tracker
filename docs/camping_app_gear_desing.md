@@ -17,7 +17,7 @@ The system follows a standard MVC (Model-View-Controller) architecture with a mo
 
 ```mermaid
 graph TD
-    Client[Android App (React Native Expo)] -->|HTTP/REST| LB[Load Balancer / Nginx]
+    Client[Android App React Native Expo] -->|HTTP/REST| LB[Load Balancer / Nginx]
     LB --> API[Node.js API Server]
     API -->|Queries| DB[(PostgreSQL Database)]
     API -->|File Uploads| Storage[File Storage]
