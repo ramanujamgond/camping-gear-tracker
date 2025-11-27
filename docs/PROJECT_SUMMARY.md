@@ -275,22 +275,48 @@ Update `mobile/src/config/api.js` with your API URL
 
 ## Deployment
 
-### Backend
-```bash
-# Production build
-docker-compose -f docker-compose.prod.yml up -d
+### Current Production Setup
 
-# Or deploy to cloud (AWS, GCP, Azure)
+**Hosting Stack (100% FREE):**
+- **Backend API:** Railway.app
+- **Database:** Neon.tech (Serverless PostgreSQL)
+- **Image Storage:** Cloudinary (Cloud CDN)
+- **Mobile App:** Expo/EAS Build
+
+**Production URL:** `https://camping-gear-tracker-production.up.railway.app`
+
+### Backend Deployment
+```bash
+# Push to GitHub (Railway auto-deploys)
+git push origin main
+
+# Railway will:
+# 1. Pull latest code from GitHub
+# 2. Build from /backend directory
+# 3. Deploy to production
+# 4. Connect to Neon database
+# 5. Use Cloudinary for images
 ```
 
-### Mobile
+### Mobile App Build
 ```bash
-# Build Android APK
+# Build Android APK for testing
+cd mobile
 eas build --platform android --profile preview
 
-# Build for Play Store
+# Build for production
 eas build --platform android --profile production
+
+# Install on emulator
+eas build:run --platform android --latest
 ```
+
+### Architecture Benefits
+- ✅ No ephemeral filesystem issues (Cloudinary handles images)
+- ✅ Serverless database (Neon - no cold starts)
+- ✅ Automatic image optimization & CDN delivery
+- ✅ Free tier for hobby projects
+- ✅ Easy GitHub integration & auto-deploy
 
 ## Support & Maintenance
 

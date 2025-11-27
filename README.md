@@ -4,14 +4,17 @@ Track your camping equipment using QR codes and barcodes.
 
 ## Documentation
 
+- [Hosting Guide](docs/HOSTING_GUIDE.md) - **Production hosting setup & architecture**
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - How to deploy to production
 - [Design Document](docs/camping_app_gear_desing.md) - System architecture and design
 - [Implementation Guide](docs/IMPLEMENTATION.md) - Development phases and setup
+- [Mobile App Guide](docs/MOBILE_APP_GUIDE.md) - React Native app setup
+- [Auth System Guide](docs/AUTH_SYSTEM_GUIDE.md) - Authentication & user management
 - [API Testing Guide](docs/API_TESTING_GUIDE.md) - How to test endpoints
 - [Validation Guide](docs/VALIDATION_GUIDE.md) - API validation rules
 - [Validation Summary](docs/VALIDATION_SUMMARY.md) - Validation implementation details
 - [Barcode Generation Guide](docs/barcode_generation_guide.md) - QR code strategy
 - [Postman Collection](postman/Camping_Gear_Tracker.postman_collection.json) - Import into Postman
-- [Mobile App Guide](docs/MOBILE_APP_GUIDE.md) - React Native app setup
 
 ## Quick Start
 

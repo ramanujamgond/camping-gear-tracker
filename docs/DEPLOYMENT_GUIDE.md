@@ -2,6 +2,22 @@
 
 Complete guide for deploying the Camping Gear Tracker backend and building the Android APK.
 
+## Current Production Setup
+
+### 🌐 Hosting Architecture
+
+| Component | Platform | Purpose | Cost |
+|-----------|----------|---------|------|
+| **Backend API** | Railway.app | Node.js/Express API server | FREE (trial) |
+| **Database** | Neon.tech | Serverless PostgreSQL | FREE (0.5GB) |
+| **Image Storage** | Cloudinary | Cloud image hosting & CDN | FREE (25GB) |
+| **Mobile App** | Expo/EAS | Android APK builds | FREE |
+
+### 🔗 Production URLs
+- **API:** `https://camping-gear-tracker-production.up.railway.app`
+- **Database:** Neon serverless PostgreSQL (connection via DATABASE_URL)
+- **Images:** Cloudinary CDN (automatic optimization & delivery)
+
 ## Table of Contents
 1. [Backend Deployment](#backend-deployment)
 2. [Android APK Build](#android-apk-build)
@@ -241,15 +257,56 @@ heroku git:remote -a camping-gear-tracker
 git push heroku main
 ```
 
-### Option 3: Deploy to Railway.app
+### Option 3: Deploy to Railway.app (Current Production Setup)
 
+**This is the current production deployment method.**
+
+#### Step 1: Setup Railway Project
 1. Go to https://railway.app
 2. Sign up with GitHub
 3. Click "New Project" → "Deploy from GitHub repo"
-4. Select your repository
-5. Add PostgreSQL database
-6. Set environment variables
-7. Deploy automatically
+4. Select your `camping-gear-tracker` repository
+
+#### Step 2: Configure Root Directory
+Since the backend is in a subdirectory:
+1. Click on your service
+2. Go to **Settings** tab
+3. Find **Root Directory** setting
+4. Set to: `backend`
+5. Click **Save**
+
+#### Step 3: Setup External Database (Neon)
+Instead of Railway's PostgreSQL, we use Neon for the free tier:
+1. Go to https://neon.tech
+2. Create a free account
+3. Create a new project
+4. Copy the connection string
+
+#### Step 4: Setup Cloudinary for Images
+1. Go to https://cloudinary.com/users/register_free
+2. Sign up for free account
+3. Go to Dashboard → Settings → Access Keys
+4. Copy your credentials (cloud_name, api_key, api_secret)
+
+#### Step 5: Set Environment Variables on Railway
+Add these environment variables in Railway:
+```
+DATABASE_URL=<your_neon_connection_string>
+CLOUDINARY_CLOUD_NAME=<your_cloudinary_cloud_name>
+CLOUDINARY_API_KEY=<your_cloudinary_api_key>
+CLOUDINARY_API_SECRET=<your_cloudinary_api_secret>
+SUPER_ADMIN_PIN=<your_4_digit_pin>
+JWT_SECRET=<generate_random_32_char_string>
+JWT_EXPIRES_IN=365d
+NODE_ENV=production
+PORT=3000
+```
+
+#### Step 6: Deploy
+Railway will automatically deploy when you push to GitHub:
+```bash
+git push origin main
+```
 
 ---
 
@@ -405,6 +462,71 @@ The build process will:
 # Build locally
 eas build --platform android --profile preview --local
 ```
+
+---
+
+## Current Production Architecture
+
+### Data Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    MOBILE APP (Android)                  │
+│              Built with Expo, hosted on device           │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     │ HTTPS API Calls
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│              BACKEND API (Railway.app)                   │
+│   https://camping-gear-tracker-production.up.railway.app│
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │   Express    │  │  Auth/JWT    │  │  Image API   │ │
+│  │   Routes     │  │  Middleware  │  │  Controller  │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘ │
+└──────────┬────────────────────────────────┬────────────┘
+           │                                │
+           │ SQL Queries                    │ Image Upload
+           ▼                                ▼
+┌──────────────────────────┐    ┌──────────────────────────┐
+│  DATABASE (Neon.tech)    │    │  IMAGES (Cloudinary)     │
+│  Serverless PostgreSQL   │    │  Cloud Image Storage     │
+│                          │    │                          │
+│  Tables:                 │    │  Folder: camping-gear/   │
+│  - items                 │    │  - Optimized images      │
+│  - item_images           │    │  - CDN delivery          │
+│  - categories            │    │  - Auto transformations  │
+│  - users                 │    │                          │
+│  - item_categories       │    │                          │
+└──────────────────────────┘    └──────────────────────────┘
+```
+
+### Why This Stack?
+
+**Railway.app:**
+- Easy GitHub integration
+- Automatic deployments
+- Free trial credits
+- Simple environment variable management
+
+**Neon.tech:**
+- Serverless PostgreSQL (no cold starts)
+- 0.5 GB free storage
+- Automatic backups
+- Better free tier than Railway's database
+
+**Cloudinary:**
+- 25 GB free storage
+- 25 GB free bandwidth/month
+- Automatic image optimization
+- CDN delivery worldwide
+- No ephemeral filesystem issues
+
+**Expo/EAS:**
+- Free APK builds
+- Easy updates
+- Professional build infrastructure
 
 ---
 
