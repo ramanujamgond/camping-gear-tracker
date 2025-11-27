@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
 import itemService from '../services/itemService';
+import API_CONFIG from '../config/api';
 
 export default function ItemDetailScreen({ route, navigation }) {
   const [item, setItem] = React.useState(route.params.item);
@@ -88,7 +89,7 @@ export default function ItemDetailScreen({ route, navigation }) {
               {item.images.map((image) => (
                 <Image
                   key={image.id}
-                  source={{ uri: `http://192.168.29.226:3000${image.image_url}` }}
+                  source={{ uri: `${API_CONFIG.BASE_URL.replace('/api/v1', '')}${image.image_url}` }}
                   style={styles.image}
                 />
               ))}
