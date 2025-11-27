@@ -84,15 +84,21 @@ export default function ItemDetailScreen({ route, navigation }) {
 
         {item.images && item.images.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Images</Text>
+            <Text style={styles.sectionTitle}>Images ({item.images.length})</Text>
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-              {item.images.map((image) => (
-                <Image
-                  key={image.id}
-                  source={{ uri: `${API_CONFIG.BASE_URL.replace('/api/v1', '')}${image.image_url}` }}
-                  style={styles.image}
-                />
-              ))}
+              {item.images.map((image) => {
+                const imageUrl = `${API_CONFIG.BASE_URL.replace('/api/v1', '')}${image.image_url}`;
+                console.log('Loading image:', imageUrl);
+                return (
+                  <Image
+                    key={image.id}
+                    source={{ uri: imageUrl }}
+                    style={styles.image}
+                    onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+                    onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+                  />
+                );
+              })}
             </ScrollView>
           </View>
         )}
