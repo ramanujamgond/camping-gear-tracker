@@ -87,7 +87,10 @@ export default function ItemDetailScreen({ route, navigation }) {
             <Text style={styles.sectionTitle}>Images ({item.images.length})</Text>
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
               {item.images.map((image) => {
-                const imageUrl = `${API_CONFIG.BASE_URL.replace('/api/v1', '')}${image.image_url}`;
+                // Handle both Cloudinary URLs and legacy local URLs
+                const imageUrl = image.image_url.startsWith('http') 
+                  ? image.image_url 
+                  : `${API_CONFIG.BASE_URL.replace('/api/v1', '')}${image.image_url}`;
                 console.log('Loading image:', imageUrl);
                 return (
                   <Image
