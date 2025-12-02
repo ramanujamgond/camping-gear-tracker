@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import itemService from '../services/itemService';
 
-export default function ScannerScreen({ navigation }) {
+export default function ScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { onScan } = route.params || {};
 
   const handleBarCodeScanned = async ({ data }) => {
     if (scanned || loading) return;
@@ -15,6 +16,14 @@ export default function ScannerScreen({ navigation }) {
     setLoading(true);
 
     try {
+      // If there's a callback, use it (for trip item scanning)
+      if (onScan) {
+        onScan(data);
+        navigation.goBack();
+        return;
+      }
+
+      // Otherwise, fetch item details
       const result = await itemService.getItemByQrCode(data);
       
       if (result.success) {

@@ -3,18 +3,49 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, Act
 import itemService from '../services/itemService';
 import API_CONFIG from '../config/api';
 
+import { AuthContext } from '../context/AuthContext';
+import tripService from '../services/tripService';
+
 export default function ItemDetailScreen({ route, navigation }) {
+  const { isAdmin } = React.useContext(AuthContext);
   const [item, setItem] = React.useState(route.params.item);
+  const [tripStatuses, setTripStatuses] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    // Refetch item to get all images
-    const fetchItem = async () => {
+    // Refetch item to get all images and trip statuses
+    const fetchItemData = async () => {
       try {
         setLoading(true);
         const result = await itemService.getItemByQrCode(item.qr_code_id);
         if (result.success) {
           setItem(result.data);
+        }
+
+        // Fetch all trips to find this item's status
+        try {
+          const tripsData = await tripService.getTrips({ limit: 100 });
+          const itemTripStatuses = [];
+          
+          if (tripsData.trips) {
+            for (const trip of tripsData.trips) {
+              const tripDetail = await tripService.getTripById(trip.id);
+              const tripItem = tripDetail.trip_items?.find(ti => ti.item_id === item.id);
+              
+              if (tripItem) {
+                itemTripStatuses.push({
+                  tripId: trip.id,
+                  tripName: trip.name,
+                  status: tripItem.status,
+                  tripStatus: trip.status
+                });
+              }
+            }
+          }
+          
+          setTripStatuses(itemTripStatuses);
+        } catch (error) {
+          console.error('Failed to fetch trip statuses:', error);
         }
       } catch (error) {
         console.error('Failed to fetch item:', error);
@@ -22,8 +53,27 @@ export default function ItemDetailScreen({ route, navigation }) {
         setLoading(false);
       }
     };
-    fetchItem();
+    fetchItemData();
   }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'taken':
+        return '#ff9800';
+      case 'returned':
+        return '#4caf50';
+      case 'lost':
+        return '#f44336';
+      case 'not_found':
+        return '#9e9e9e';
+      default:
+        return '#666';
+    }
+  };
+
+  const hasLostStatus = tripStatuses.some(ts => ts.status === 'lost');
+  const hasNotFoundStatus = tripStatuses.some(ts => ts.status === 'not_found');
+  const canEdit = !hasLostStatus; // Can edit if not lost (not_found items can be edited)
 
   const handleDelete = () => {
     Alert.alert(
@@ -46,6 +96,57 @@ export default function ItemDetailScreen({ route, navigation }) {
         },
       ]
     );
+  };
+
+  const handleMarkAsFound = async () => {
+    // Navigate to scanner to verify the item
+    navigation.navigate('Scanner', {
+      onScan: async (scannedQrCode) => {
+        // Verify the scanned QR matches this item
+        if (scannedQrCode !== item.qr_code_id) {
+          Alert.alert(
+            'Wrong Item',
+            `You scanned "${scannedQrCode}" but expected "${item.qr_code_id}". Please scan the correct item.`
+          );
+          return;
+        }
+
+        // Confirm before updating
+        Alert.alert(
+          'Mark as Found',
+          'This will mark the item as returned in all trips where it was not found. Continue?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Mark as Found',
+              onPress: async () => {
+                try {
+                  // Update all trips where this item is marked as not_found
+                  for (const tripStatus of tripStatuses) {
+                    if (tripStatus.status === 'not_found') {
+                      await tripService.markItemReturned(
+                        tripStatus.tripId,
+                        item.id,
+                        'Item was found',
+                        'returned',
+                        scannedQrCode
+                      );
+                    }
+                  }
+                  Alert.alert('Success', 'Item marked as found in all trips');
+                  // Refresh the screen
+                  navigation.replace('ItemDetail', { item });
+                } catch (error) {
+                  const errorMessage = error.response?.data?.error?.message || 'Failed to update item status';
+                  Alert.alert('Error', errorMessage);
+                  console.error('Mark as found error:', error);
+                }
+              },
+            },
+          ]
+        );
+      },
+    });
   };
 
   if (loading) {
@@ -106,6 +207,34 @@ export default function ItemDetailScreen({ route, navigation }) {
           </View>
         )}
 
+        {tripStatuses.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Trip Status</Text>
+            {tripStatuses.map((tripStatus, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.tripStatusCard}
+                onPress={() => navigation.navigate('TripDetail', { tripId: tripStatus.tripId })}
+              >
+                <View style={styles.tripStatusHeader}>
+                  <Text style={styles.tripStatusName}>{tripStatus.tripName}</Text>
+                  <View style={[
+                    styles.statusBadge,
+                    { backgroundColor: getStatusColor(tripStatus.status) }
+                  ]}>
+                    <Text style={styles.statusBadgeText}>
+                      {tripStatus.status.toUpperCase().replace('_', ' ')}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.tripStatusSubtext}>
+                  Trip Status: {tripStatus.tripStatus}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <View style={styles.metadata}>
           <Text style={styles.metadataText}>
             Created: {new Date(item.createdAt).toLocaleDateString()}
@@ -116,19 +245,51 @@ export default function ItemDetailScreen({ route, navigation }) {
         </View>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.editButton]}
-          onPress={() => navigation.navigate('AddItem', { item, isEdit: true })}
-        >
-          <Text style={styles.buttonText}>✏️ Edit</Text>
-        </TouchableOpacity>
+      {hasLostStatus && (
+        <View style={styles.warningCard}>
+          <Text style={styles.warningIcon}>⚠️</Text>
+          <Text style={styles.warningText}>
+            This item is marked as LOST in one or more trips. Editing is disabled.
+          </Text>
+        </View>
+      )}
 
+      {hasNotFoundStatus && !hasLostStatus && (
+        <View style={styles.infoCard}>
+          <Text style={styles.infoIcon}>ℹ️</Text>
+          <Text style={styles.infoText}>
+            This item is marked as NOT FOUND in one or more trips.
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.actionsContainer}>
+        {/* Edit Button - Only show if not lost */}
+        {canEdit && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('AddItem', { item, isEdit: true })}
+          >
+            <Text style={styles.actionButtonText}>✏️ Edit</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Mark as Found Button - Only for not_found items (admin) */}
+        {hasNotFoundStatus && isAdmin() && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.foundButton]}
+            onPress={handleMarkAsFound}
+          >
+            <Text style={styles.actionButtonText}>✓ Mark as Found</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Delete Button - Always show */}
         <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
+          style={[styles.actionButton, styles.deleteButton]}
           onPress={handleDelete}
         >
-          <Text style={styles.buttonText}>🗑️ Delete</Text>
+          <Text style={styles.actionButtonText}>🗑️ Delete</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -229,6 +390,107 @@ const styles = StyleSheet.create({
     backgroundColor: '#d32f2f',
   },
   buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  tripStatusCard: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2e7d32',
+  },
+  tripStatusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  tripStatusName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  tripStatusSubtext: {
+    fontSize: 12,
+    color: '#666',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  statusBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  warningCard: {
+    backgroundColor: '#fff3e0',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f44336',
+    padding: 15,
+    marginHorizontal: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  warningIcon: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#d84315',
+    fontWeight: '500',
+  },
+  infoCard: {
+    backgroundColor: '#e3f2fd',
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196f3',
+    padding: 15,
+    marginHorizontal: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoIcon: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1565c0',
+    fontWeight: '500',
+  },
+  foundButton: {
+    backgroundColor: '#4caf50',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    padding: 15,
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  actionButton: {
+    flex: 1,
+    minWidth: '45%',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+    marginBottom: 10,
+    backgroundColor: '#558b2f',
+  },
+  actionButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

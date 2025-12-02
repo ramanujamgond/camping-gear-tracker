@@ -10,6 +10,7 @@ const itemRoutes = require('./routes/items');
 const categoryRoutes = require('./routes/categories');
 const authRoutes = require('./routes/auth');
 const exportRoutes = require('./routes/export');
+const tripRoutes = require('./routes/trips');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/export', exportRoutes);
+app.use('/api/v1/trips', tripRoutes);
 
 // 404 handler
 app.use((req, res) => {

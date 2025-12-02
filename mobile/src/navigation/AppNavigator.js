@@ -11,6 +11,10 @@ import ItemDetailScreen from '../screens/ItemDetailScreen';
 import AddItemScreen from '../screens/AddItemScreen';
 import ItemListScreen from '../screens/ItemListScreen';
 import UserManagementScreen from '../screens/UserManagementScreen';
+import TripListScreen from '../screens/TripListScreen';
+import CreateTripScreen from '../screens/CreateTripScreen';
+import TripDetailScreen from '../screens/TripDetailScreen';
+import AddTripItemScreen from '../screens/AddTripItemScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -76,6 +80,26 @@ function Navigation() {
           name="UserManagement" 
           component={UserManagementScreen}
           options={{ title: 'User Management' }}
+        />
+        <Stack.Screen 
+          name="TripList" 
+          component={TripListScreen}
+          options={{ title: 'Trips' }}
+        />
+        <Stack.Screen 
+          name="CreateTrip" 
+          component={CreateTripScreen}
+          options={{ title: 'Create Trip' }}
+        />
+        <Stack.Screen 
+          name="TripDetail" 
+          component={TripDetailScreen}
+          options={{ title: 'Trip Details' }}
+        />
+        <Stack.Screen 
+          name="AddTripItem" 
+          component={AddTripItemScreen}
+          options={{ title: 'Add Item to Trip' }}
         />
           </>
         )}

@@ -14,6 +14,19 @@ export const itemService = {
     }
   },
 
+  // Get item by ID (UUID)
+  getItemById: async (itemId) => {
+    try {
+      const response = await api.get(`/items/${itemId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return { success: false, notFound: true, itemId };
+      }
+      throw error;
+    }
+  },
+
   // Create new item
   createItem: async (itemData) => {
     const response = await api.post('/items', itemData);

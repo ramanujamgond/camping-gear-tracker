@@ -99,6 +99,13 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'Name and PIN are required' });
     }
 
+    // Prevent creating a user named "Super Admin"
+    if (name.toLowerCase().trim() === 'super admin') {
+      return res.status(400).json({ 
+        message: 'Cannot create user with name "Super Admin". This name is reserved for the system administrator.' 
+      });
+    }
+
     if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
       return res.status(400).json({ message: 'PIN must be exactly 4 digits' });
     }

@@ -261,3 +261,70 @@ eas build --platform android --profile production
 - [React Navigation](https://reactnavigation.org/)
 - [React Native](https://reactnative.dev/)
 - [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/)
+
+
+## Trip Management Features (New)
+
+The mobile app now includes comprehensive trip management functionality:
+
+### Features
+
+1. **Trip List**
+   - View all trips with status badges (open/closed)
+   - See trip statistics (total items, returned, pending, lost)
+   - Quick navigation to trip details
+   - Admin can create new trips
+
+2. **Create Trip** (Admin Only)
+   - Enter trip name, location, dates, and notes
+   - Dates in YYYY-MM-DD format
+   - Trip starts with "open" status
+
+3. **Trip Details**
+   - View complete trip information
+   - See statistics with progress bar
+   - List all items in the trip
+   - Add items to trip (scan QR or enter ID)
+   - Mark items as returned/lost/not_found
+   - Close trip (admin only)
+   - Delete trip (admin only)
+
+4. **Add Items to Trip**
+   - Scan QR code to add item
+   - Or manually enter item ID
+   - Add notes about item condition
+   - Items start with "taken" status
+
+### Trip Workflow
+
+```
+1. Create Trip (admin) → Status: "open"
+2. Add Items → Status: "taken"
+3. During/After Trip:
+   - Mark items as "returned" (any user)
+   - Mark items as "lost" (admin only)
+   - Mark items as "not_found" (admin only)
+4. Close Trip (admin) → Status: "closed"
+```
+
+### Status Colors
+
+- **Open Trip**: Green
+- **Closed Trip**: Gray
+- **Taken Item**: Orange
+- **Returned Item**: Green
+- **Lost Item**: Red
+- **Not Found Item**: Gray
+
+### Navigation
+
+From Home Screen:
+- Tap "🏕️ Manage Trips" to view all trips
+- Admins see "➕ Create New Trip" button
+- Tap any trip to view details
+- From trip details, tap "➕ Add Item" to add items
+
+### Permissions
+
+- **All Users**: View trips, add items, mark items as returned
+- **Admin Only**: Create trips, close trips, delete trips, mark items as lost/not_found

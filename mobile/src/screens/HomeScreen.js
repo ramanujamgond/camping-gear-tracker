@@ -79,6 +79,13 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.buttonText}>📋 View All Items</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.button, styles.tripButton]}
+        onPress={() => navigation.navigate('TripList')}
+      >
+        <Text style={styles.buttonText}>🏕️ Manage Trips</Text>
+      </TouchableOpacity>
+
       {isAdmin() && (
         <TouchableOpacity
           style={[styles.button, styles.adminButton]}
@@ -145,6 +152,9 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: '#558b2f',
+  },
+  tripButton: {
+    backgroundColor: '#1976d2',
   },
   adminButton: {
     backgroundColor: '#f57c00',
